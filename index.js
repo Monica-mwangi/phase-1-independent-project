@@ -132,7 +132,24 @@ document.addEventListener('DOMContentLoaded', () => {
     //create an object to hold the comment data
     const commentData = {comment:commentText};
     
-
+    //post request for the add comments 
+    fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(commentData)
+    })
+    .then(response => response.json)
+    .then((data=>{
+        //it handles response from the server
+        if(data.success){
+            alert('comment added succesfully')
+        } else(data.error)
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+      });
 
         //const commentItem = document.createElement('div');
         //commentItem.textContent = commentText;
