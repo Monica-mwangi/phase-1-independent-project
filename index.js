@@ -10,21 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchTerm = searchInput.value;
 
         fetch('https://thronesapi.com/api/v2/Characters')
-        .then(response => response.json())
-        .then(data => filterSearchResults(data, searchTerm))
-        .catch(error => console.error(error));
-}
+            .then(response => response.json())
+            .then(data => filterSearchResults(data, searchTerm))
+            .catch(error => console.error(error));
+    }
 
-function filterSearchResults(data, searchTerm) {
-    const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
-    displaySearchResults(filteredResults);
-}
-
+    function filterSearchResults(data, searchTerm) {
+        const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
+        displaySearchResults(filteredResults);
+    }
 
     function displaySearchResults(results) {
         resultsDiv.innerHTML = '';
-        
-    window.showCharacterDetails = function(characterId) {
+
+        window.showCharacterDetails = function (characterId) {
             fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
                 .then(response => response.json())
                 .then(data => displayCharacterDetails(data))
@@ -36,45 +35,63 @@ function filterSearchResults(data, searchTerm) {
             const noResultsMessage = document.createElement('p');
             noResultsMessage.textContent = 'No results found.';
             resultsDiv.appendChild(noResultsMessage);
-        }else {
+        } else {
             results.forEach(result => {
-    
-            const resultItem = document.createElement('div');
-            resultItem.classList.add('result-item');
 
-            resultItem.innerHTML = `
-                <h3>${result.fullName}</h3>
-                <img id="character-image-${result.id}" src="${result.imageUrl}" alt="${result.fullName}">
-                <p>${result.title || 'No Title'}</p>
-                <button onclick="showCharacterDetails(${result.id})">Details</button>    
-            `;
-          
-            const commentSection = document.createElement('div');
-            commentSection.classList.add('comment-section');
+                const resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
 
-            const commentInput = document.createElement('input');
-            commentInput.classList.add('comment-input');
-            commentInput.type = 'text';
-            commentInput.placeholder = 'Leave a comment...';
-            commentSection.appendChild(commentInput);
+                resultItem.innerHTML = `
+                    <h3>${result.fullName}</h3>
+                    <img id="character-image-${result.id}" src="${result.imageUrl}" alt="${result.fullName}">
+                    <p>${result.title || 'No Title'}</p>
+                    <button onclick="showCharacterDetails(${result.id})">Details</button>
+                `;
+                const likeButton = resultItem.querySelector('button.likeButton');
+                if (likeButton !== null) {
+                    likeButton.addEventListener("click", function () {
+                        likeButton.classList.toggle("liked");
+                    })
+                };
 
-            const commentButton = document.createElement('button');
-            commentButton.classList.add('comment-button');
-            commentButton.textContent = 'Submit';
-            commentButton.addEventListener('click', () => {
-                const comment = commentInput.value.trim();
-                if (comment !== '') {
-                    addComment(result.id, comment);
-                    console.log('comment added successfully');
-                    commentInput.value = ''; 
-                }
+                const commentSection = document.createElement('div');
+                commentSection.classList.add('comment-section');
+
+                const commentInput = document.createElement('input');
+                commentInput.classList.add('comment-input');
+                commentInput.type = 'text';
+                commentInput.placeholder = 'Leave a comment...';
+                commentSection.appendChild(commentInput);
+
+                const commentButton = document.createElement('button');
+                commentButton.classList.add('comment-button');
+                commentButton.textContent = 'Submit';
+                commentButton.addEventListener('click', () => {
+                    const comment = commentInput.value.trim();
+                    if (comment !== '') {
+                        addComment(result.id, comment);
+                        console.log('comment added successfully');
+                        commentInput.value = '';
+                    }
+                });
+                commentSection.appendChild(commentButton);
+
+                resultItem.appendChild(commentSection);
+
+                // Add delete button for each comment
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    // Assuming addComment function returns a unique identifier for the comment
+                    const commentId = addComment(result.id, commentInput.value.trim());
+                    deleteComment(result.id, commentId);
+                });
+                commentSection.appendChild(deleteButton);
+
+                resultsDiv.appendChild(resultItem);
             });
-            commentSection.appendChild(commentButton);
-
-            resultItem.appendChild(commentSection);
-            resultsDiv.appendChild(resultItem);
-        });
-         }
+        }
     }
 
     function displayCharacterDetails(details) {
@@ -85,55 +102,40 @@ function filterSearchResults(data, searchTerm) {
             <h2>${details.fullName}</h2>
             <p>Title: ${details.title || 'No Title'}</p>
             <p>Family: ${details.family || 'Unknown'}</p>
-           
         `;
 
         const characterImage = document.getElementById(`character-image-${details.id}`);
         characterImage.insertAdjacentElement('afterend', characterDetailsDiv);
 
-        const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = ''; // Clear previous results
         resultsDiv.appendChild(characterDetailsDiv);
     }
 
-    const likeButton = document.getElementById("likeButton");
-
-//likeButton.addEventListener("click", function() {
-  //likeButton.classList.toggle("liked");
-//});
-
-    function toggleFavorite(characterName) {
-        // Implement your logic for toggling favorites
-        // You can use local storage to store favorites
-        console.log('Toggling favorite for:', characterName);
-    }
-
-    function isFavorite(characterName) {
-        // Implement your logic for checking favorites
-        // You can use local storage to store favorites
-        return false;
-    }
-
     function addComment(characterId, comment) {
+        console.log('Adding comment for character ID', characterId, ':', comment);
         // Implement your logic for adding comments
-        // Make a POST request to the API endpoint for adding comments
-        // Example: fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({ comment })
+        // Return a unique identifier for the comment (assuming)
+        return new Date().getTime(); // Example: Using timestamp as a comment identifier
+    }
+
+    function deleteComment(characterId, commentId) {
+        console.log('Deleting comment for character ID', characterId, ', Comment ID:', commentId);
+        // Implement your logic for deleting comments
+        // Example: Make a DELETE request to the API endpoint for deleting comments
+        // fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments/${commentId}`, {
+        //     method: 'DELETE',
         // })
-        // .then(response => response.json())
-        // .then(data => {
-        //     // Handle success or failure
-        //     console.log('Comment added:', data);
+        // .then(response => {
+        //     if (response.ok) {
+        //         console.log('Comment deleted successfully');
+        //     } else {
+        //         console.error('Failed to delete comment');
+        //     }
         // })
         // .catch(error => console.error(error));
-
-        console.log('Adding comment for character ID', characterId, ':', comment);
     }
 });
+
 
 
 
