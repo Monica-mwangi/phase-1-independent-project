@@ -23,6 +23,13 @@ function filterSearchResults(data, searchTerm) {
 
     function displaySearchResults(results) {
         resultsDiv.innerHTML = '';
+        
+    window.showCharacterDetails = function(characterId) {
+            fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
+                .then(response => response.json())
+                .then(data => displayCharacterDetails(data))
+                .catch(error => console.error(error));
+        }
 
         if (results.length === 0) {
             // Handle case when no results are found
@@ -39,10 +46,9 @@ function filterSearchResults(data, searchTerm) {
                 <h3>${result.fullName}</h3>
                 <img id="character-image-${result.id}" src="${result.imageUrl}" alt="${result.fullName}">
                 <p>${result.title || 'No Title'}</p>
-                <button onclick="showCharacterDetails(${result.id})">Details</button>
-                
+                <button onclick="showCharacterDetails(${result.id})">Details</button>    
             `;
-
+          
             const commentSection = document.createElement('div');
             commentSection.classList.add('comment-section');
 
@@ -71,25 +77,15 @@ function filterSearchResults(data, searchTerm) {
          }
     }
 
-
-    function showCharacterDetails(characterId) {
-        fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
-            .then(response => response.json())
-            .then(data => displayCharacterDetails(data))
-            .catch(error => console.error(error));
-    }
-
     function displayCharacterDetails(details) {
         const characterDetailsDiv = document.createElement('div');
         characterDetailsDiv.classList.add('character-details');
 
         characterDetailsDiv.innerHTML = `
             <h2>${details.fullName}</h2>
-            <p>${details.title || 'No Title'}</p>
-            <p>House: ${details.family || 'Unknown'}</p>
-            <p>Gender: ${details.gender || 'Unknown'}</p>
-            <p>Birth: ${details.birth || 'Unknown'}</p>
-            <p>Death: ${details.death || 'Unknown'}</p>
+            <p>Title: ${details.title || 'No Title'}</p>
+            <p>Family: ${details.family || 'Unknown'}</p>
+           
         `;
 
         const characterImage = document.getElementById(`character-image-${details.id}`);
