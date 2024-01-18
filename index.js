@@ -1,59 +1,77 @@
+// index.js
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('search');
-    const searchResults = document.getElementById('searchResults');
-    const characterDetails = document.getElementById('characterDetails');
-    const favoritesList = document.getElementById('favoritesList');
-    const commentInput = document.getElementById('commentInput');
-    const commentsList = document.getElementById('commentsList');
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const resultsDiv = document.getElementById('results');
 
-    let favorites = getFavoritesFromStorage();
+    searchButton.addEventListener('click', searchCharacters);
 
-    // Event listener for search input
-    searchInput.addEventListener('input', debounce(searchCharacters, 300));
-
-    // Event listener for favorites list
-    favoritesList.addEventListener('click', (event) => {
-        if (event.target.classList.contains('like-button')) {
-            const characterName = event.target.dataset.character;
-            toggleFavorite(characterName);
-            renderFavorites();
-        }
-    });
-
-    // Fetch and display characters
     function searchCharacters() {
-        const searchTerm = searchInput.value.trim().toLowerCase();
+        const searchTerm = searchInput.value;
 
-        if (searchTerm.length === 0) {
-            searchResults.innerHTML = '';
-            return;
-        }
+        fetch('https://thronesapi.com/api/v2/Characters')
+        .then(response => response.json())
+        .then(data => filterSearchResults(data, searchTerm))
+        .catch(error => console.error(error));
+}
 
-        fetch(`https://thronesapi.com/api/v2/Characters?firstname=${searchTerm}`)
-            .then(response => response.json())
-            .then(data => displaySearchResults(data))
-            .catch(error => console.error(error));
-    }
+function filterSearchResults(data, searchTerm) {
+    const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
+    displaySearchResults(filteredResults);
+}
 
-    // Display search results
+
     function displaySearchResults(results) {
-        searchResults.innerHTML = '';
+        resultsDiv.innerHTML = '';
 
-        results.forEach(result => {
+        if (results.length === 0) {
+            // Handle case when no results are found
+            const noResultsMessage = document.createElement('p');
+            noResultsMessage.textContent = 'No results found.';
+            resultsDiv.appendChild(noResultsMessage);
+        }else {
+            results.forEach(result => {
+    
             const resultItem = document.createElement('div');
             resultItem.classList.add('result-item');
+
             resultItem.innerHTML = `
                 <h3>${result.fullName}</h3>
-                <img src="${result.imageUrl}" alt="${result.fullName}">
+                <img id="character-image-${result.id}" src="${result.imageUrl}" alt="${result.fullName}">
                 <p>${result.title || 'No Title'}</p>
                 <button onclick="showCharacterDetails(${result.id})">Details</button>
-                <button class="like-button" data-character="${result.fullName}">${isFavorite(result.fullName) ? 'Unlike' : 'Like'}</button>
+                
             `;
-            searchResults.appendChild(resultItem);
+
+            const commentSection = document.createElement('div');
+            commentSection.classList.add('comment-section');
+
+            const commentInput = document.createElement('input');
+            commentInput.classList.add('comment-input');
+            commentInput.type = 'text';
+            commentInput.placeholder = 'Leave a comment...';
+            commentSection.appendChild(commentInput);
+
+            const commentButton = document.createElement('button');
+            commentButton.classList.add('comment-button');
+            commentButton.textContent = 'Submit';
+            commentButton.addEventListener('click', () => {
+                const comment = commentInput.value.trim();
+                if (comment !== '') {
+                    addComment(result.id, comment);
+                    console.log('comment added successfully');
+                    commentInput.value = ''; 
+                }
+            });
+            commentSection.appendChild(commentButton);
+
+            resultItem.appendChild(commentSection);
+            resultsDiv.appendChild(resultItem);
         });
+         }
     }
 
-    // Show character details
+
     function showCharacterDetails(characterId) {
         fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
             .then(response => response.json())
@@ -61,9 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(error));
     }
 
-    // Display character details
     function displayCharacterDetails(details) {
-        characterDetails.innerHTML = `
+        const characterDetailsDiv = document.createElement('div');
+        characterDetailsDiv.classList.add('character-details');
+
+        characterDetailsDiv.innerHTML = `
             <h2>${details.fullName}</h2>
             <p>${details.title || 'No Title'}</p>
             <p>House: ${details.family || 'Unknown'}</p>
@@ -71,106 +91,57 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>Birth: ${details.birth || 'Unknown'}</p>
             <p>Death: ${details.death || 'Unknown'}</p>
         `;
+
+        const characterImage = document.getElementById(`character-image-${details.id}`);
+        characterImage.insertAdjacentElement('afterend', characterDetailsDiv);
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ''; // Clear previous results
+        resultsDiv.appendChild(characterDetailsDiv);
     }
 
-    // Toggle favorite status
+    const likeButton = document.getElementById("likeButton");
+
+//likeButton.addEventListener("click", function() {
+  //likeButton.classList.toggle("liked");
+//});
+
     function toggleFavorite(characterName) {
-        if (isFavorite(characterName)) {
-            favorites = favorites.filter(name => name !== characterName);
-        } else {
-            favorites.push(characterName);
-        }
-
-        saveFavoritesToStorage();
+        // Implement your logic for toggling favorites
+        // You can use local storage to store favorites
+        console.log('Toggling favorite for:', characterName);
     }
 
-    // Check if a character is a favorite
     function isFavorite(characterName) {
-        return favorites.includes(characterName);
+        // Implement your logic for checking favorites
+        // You can use local storage to store favorites
+        return false;
     }
 
-    // Render favorites list
-    function renderFavorites() {
-        favoritesList.innerHTML = '';
+    function addComment(characterId, comment) {
+        // Implement your logic for adding comments
+        // Make a POST request to the API endpoint for adding comments
+        // Example: fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments`, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({ comment })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     // Handle success or failure
+        //     console.log('Comment added:', data);
+        // })
+        // .catch(error => console.error(error));
 
-        favorites.forEach(characterName => {
-            const favoriteItem = document.createElement('li');
-            favoriteItem.textContent = characterName;
-            favoritesList.appendChild(favoriteItem);
-        });
-    }
-
-    // Save favorites to local storage
-    function saveFavoritesToStorage() {
-        localStorage.setItem('gotFavorites', JSON.stringify(favorites));
-    }
-
-    // Get favorites from local storage
-    function getFavoritesFromStorage() {
-        const storedFavorites = localStorage.getItem('gotFavorites');
-        return storedFavorites ? JSON.parse(storedFavorites) : [];
-    }
-
-    // Debounce function to delay search input processing
-    function debounce(func, delay) {
-        let timeoutId;
-        return function () {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                func.apply(this, arguments);
-            }, delay);
-        };
-    }
-
-    // Add comment
-    function addComment() {
-        const commentText = commentInput.value.trim();
-
-        if (commentText.length === 0) {
-            return;
-        }
-
-        // Replace 'someCharacterId' with the actual character ID
-        const characterId = 'someCharacterId';
-
-        // create an object to hold the comment data
-        const commentData = { comment: commentText };
-
-        // post request for adding comments
-        fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(commentData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                // it handles the response from the server
-                if (data.success) {
-                    alert('Comment added successfully');
-                } else {
-                    alert('Failed to add comment');
-                }
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-            });
-
-        // Clear the comment input
-        commentInput.value = '';
-    }
-
-    // Delete comment
-    function deleteComment() {
-        // Implement logic to delete a comment
-        // For example, you can remove the last child of the commentsList
-        const lastComment = commentsList.lastChild;
-        if (lastComment) {
-            commentsList.removeChild(lastComment);
-        }
+        console.log('Adding comment for character ID', characterId, ':', comment);
     }
 });
+
+
+
+
 
 
 

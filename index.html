@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
     <title>Game Of Thrones Character Hub</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Game of Thrones Character Hub</h1>
-        <input type="text" id="search" placeholder="Search for a character...">
-        <div id="characterContainer"></div>
-        <div id="characterDetailsContainer"></div>
-        <div id="commentContainer">
-            <h2>Comments</h2>
-            <form id="commentForm">
-                <input type="text" id="commentInput" placeholder="Leave a comment...">
-                <button type="submit">Submit</button>
-            </form>
-            <div id="commentList"></div>
+        <h1>Game Of Thrones Character Hub</h1>
+        <div class="input-group">
+            <input type="text" id="search-input" class="form-control" placeholder="Enter Character Name">
+            <button class="btn btn-outline-secondary" type="button" id="search-button">Search</button>
+            <button id="likeButton">Like</button>
         </div>
+        <div id="results"></div>
     </div>
-
     <script src="index.js"></script>
-    
 </body>
+</html>
+
+
+
 
