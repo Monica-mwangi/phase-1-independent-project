@@ -37,6 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .catch(error => console.error(error));
     });
+    fetch('http://localhost:3000/comments')
+    .then(res => res.json())
+    .then(comments => {
+        comments.forEach(comment => {
+            const commentId = comment.id;
+        })
+    })
 
     function displaySearchResults(results) {
         resultsDiv.innerHTML = '';
@@ -107,6 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             e.stopPropagation();
                             // Assuming addComment function returns a unique identifier for the comment
                         
+                        fetch(`http://localhost:3000/comments/${commentId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => console.log(data))
+                        .catch(err => console.log(err));
                         commentOutput.remove();
                         deleteButton.remove();
                 });
