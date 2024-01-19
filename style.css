@@ -64,10 +64,27 @@ h1 {
   #likeButton.liked {
     background-color: blue;
   }
-  #detailButton {
+  #search-input {
     background-color: #1c1c1c;
     color: white;
+    border-radius: 4px;
 
+  }
+  #dropDown{
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    z-index: 1;
+  }
+  #dropDown option{
+    padding: 5px;
+  }
+
+  #dropDown.show{
+    display: block;
   }
 
 /* Add any other styles you need */

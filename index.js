@@ -1,10 +1,9 @@
 // index.js
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
+    const dropDown = document.getElementById('searchDropdown');
     const searchButton = document.getElementById('search-button');
     const resultsDiv = document.getElementById('results');
-    const selectDropdown = document.createElement('select');
-
     
     searchButton.addEventListener('click', searchCharacters);
 
@@ -22,6 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
         displaySearchResults(filteredResults);
     }
+
+    searchInput.addEventListener('focus', () => {
+        dropDown.classList.toggle('show');
+        fetch('https://thronesapi.com/api/v2/Characters')
+          .then(response => response.json())
+          .then(data => {
+              const names = data.map(character => character.firstName);
+              names.forEach(name => {
+                  const option = document.createElement('option');
+                  option.value = name;
+                  option.textContent = name;
+                  dropDown.appendChild(option);
+              });
+          })
+          .catch(error => console.error(error));
+    });
 
     function displaySearchResults(results) {
         resultsDiv.innerHTML = '';
@@ -69,26 +84,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     const comment = commentInput.value.trim();
                     if (comment !== '') {
                         addComment(result.id, comment);
+                        fetch('http://localhost:3000/comments',{
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                comments: commentInput.value
+                            })
+                        })
+                        .then(res => res.json())
+                        .then((data) =>{console.log(data);})
+                        .catch((err) => console.log(err));
+                        const commentOutput = document.createElement('p');
+                        commentOutput.textContent = commentInput.value;
+                        commentSection.appendChild(commentOutput);
+                         // Add delete button for each comment
+                        const deleteButton = document.createElement('button');
+                        deleteButton.classList.add('delete-button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Assuming addComment function returns a unique identifier for the comment
+                        
+                        commentOutput.remove();
+                        deleteButton.remove();
+                });
+                        commentSection.appendChild(deleteButton);
                         console.log('comment added successfully');
                         commentInput.value = '';
                     }
+                    else {
+                        alert('Please enter a comment');
+                    }
+                    ;
                 });
                 commentSection.appendChild(commentButton);
+                
 
                 resultItem.appendChild(commentSection);
 
-                // Add delete button for each comment
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => {
-                    // Assuming addComment function returns a unique identifier for the comment
-                    const commentId = addComment(result.id, commentInput.value.trim());
-                    deleteComment(result.id, commentId);
-                    console.log('comment deleted successfully');
-                    commentInput.value = '';
-                });
-                commentSection.appendChild(deleteButton);
+               
 
                 resultsDiv.appendChild(resultItem);
             });
@@ -136,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addComment(characterId, comment) {
         console.log('Adding comment for character ID', characterId, ':', comment);
+        
        //  Implement your logic for adding comments
         // Return a unique identifier for the comment (assuming)
       //  return new Date().getTime(); // Example: Using timestamp as a comment identifier
