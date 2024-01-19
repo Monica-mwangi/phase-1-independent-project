@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const searchButton = document.getElementById('search-button');
     const resultsDiv = document.getElementById('results');
+    const selectDropdown = document.createElement('select');
 
+    
     searchButton.addEventListener('click', searchCharacters);
 
     function searchCharacters() {
@@ -14,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => filterSearchResults(data, searchTerm))
             .catch(error => console.error(error));
     }
+    
 
     function filterSearchResults(data, searchTerm) {
         const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -47,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>${result.title || 'No Title'}</p>
                     <button onclick="showCharacterDetails(${result.id})">Details</button>
                 `;
+                
                 const likeButton = resultItem.querySelector('button.likeButton');
                 if (likeButton !== null) {
                     likeButton.addEventListener("click", function () {
@@ -86,6 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Assuming addComment function returns a unique identifier for the comment
                     const commentId = addComment(result.id, commentInput.value.trim());
                     deleteComment(result.id, commentId);
+                    console.log('comment deleted successfully');
+                    commentInput.value = '';
                 });
                 commentSection.appendChild(deleteButton);
 
@@ -93,6 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+    function likeCharacter(characterId) {
+        // Assuming you have an API endpoint to handle like functionality
+        fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Liked character ${characterId}. New votes: ${data.votes}`);
+                // Update UI or perform other actions based on the liked character
+
+            })
+            .catch(error => console.error(error));
+    }
+    likeButton.addEventListener("click", function () {
+        likeCharacter(result.id);
+    });
+
 
     function displayCharacterDetails(details) {
         const characterDetailsDiv = document.createElement('div');
@@ -113,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addComment(characterId, comment) {
         console.log('Adding comment for character ID', characterId, ':', comment);
-        // Implement your logic for adding comments
+       //  Implement your logic for adding comments
         // Return a unique identifier for the comment (assuming)
         return new Date().getTime(); // Example: Using timestamp as a comment identifier
     }
@@ -122,15 +148,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Deleting comment for character ID', characterId, ', Comment ID:', commentId);
         // Implement your logic for deleting comments
         // Example: Make a DELETE request to the API endpoint for deleting comments
-        // fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/comments/${commentId}`, {
-        //     method: 'DELETE',
-        // })
-        // .then(response => {
-        //     if (response.ok) {
-        //         console.log('Comment deleted successfully');
-        //     } else {
-        //         console.error('Failed to delete comment');
-        //     }
+      //  const deleteCommentEndpoint = (`https://thronesapi.com/api/v2/Characters/{characterId}/comments/{commentId}`);
+
+       // fetch(deleteCommentEndpoint, {
+           //  method: 'DELETE',
+         //})
+         //.then(response => {
+            // if (response.ok) {
+              //   console.log('Comment deleted successfully');
+            // } else {
+              //  console.error('Failed to delete comment');
+           // }
         // })
         // .catch(error => console.error(error));
     }
