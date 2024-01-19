@@ -51,12 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="showCharacterDetails(${result.id})">Details</button>
                 `;
                 
-                const likeButton = resultItem.querySelector('button.likeButton');
-                if (likeButton !== null) {
-                    likeButton.addEventListener("click", function () {
-                        likeButton.classList.toggle("liked");
-                    })
-                };
+             
 
                 const commentSection = document.createElement('div');
                 commentSection.classList.add('comment-section');
@@ -115,9 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => console.error(error));
     }
-    likeButton.addEventListener("click", function () {
-        likeCharacter(result.id);
-    });
+ const inputCharacter = document.getElementById('search-input');
+ likeButton.addEventListener('click',() => {
+    const characterId = inputCharacter.value;
+    likeCharacter(characterId);
+ });
 
 
     function displayCharacterDetails(details) {
@@ -141,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Adding comment for character ID', characterId, ':', comment);
        //  Implement your logic for adding comments
         // Return a unique identifier for the comment (assuming)
-        return new Date().getTime(); // Example: Using timestamp as a comment identifier
+      //  return new Date().getTime(); // Example: Using timestamp as a comment identifier
     }
 
     function deleteComment(characterId, commentId) {
