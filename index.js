@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.getElementById('search-button');
     const resultsDiv = document.getElementById('results');
 
-    const commentSection = document.createElement('div');
-    commentSection.classList.add('comment-section');
-
     searchButton.addEventListener('click', searchCharacters);
 
     function searchCharacters() {
@@ -19,14 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(error));
     }
 
-    function filterSearchResults(data, searchTerm) {
-        const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
-        displaySearchResults(filteredResults);
-    }
-
-    searchInput.addEventListener('focus', (e) => {
-        e.stopPropagation();
-        dropDown.classList.toggle('show');
+    searchInput.addEventListener('focus', () => {
+        dropDown.innerHTML = ''; // Clear dropdown content
         fetch('https://thronesapi.com/api/v2/Characters')
             .then(response => response.json())
             .then(data => {
@@ -39,17 +30,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             })
             .catch(error => console.error(error));
+
+        dropDown.classList.toggle('show');
     });
+
+    dropDown.addEventListener('change', () => {
+        const selectedCharacter = dropDown.value;
+        if (selectedCharacter) {
+            searchInput.value = selectedCharacter;
+            searchCharacters();
+        }
+    });
+
+    function filterSearchResults(data, searchTerm) {
+        const filteredResults = data.filter(character => character.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
+        displaySearchResults(filteredResults);
+    }
 
     function displaySearchResults(results) {
         resultsDiv.innerHTML = '';
-
-        window.showCharacterDetails = function (characterId) {
-            fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
-                .then(response => response.json())
-                .then(data => displayCharacterDetails(data))
-                .catch(error => console.error(error));
-        }
 
         if (results.length === 0) {
             const noResultsMessage = document.createElement('p');
@@ -66,6 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>${result.title || 'No Title'}</p>
                     <button onclick="showCharacterDetails(${result.id})">Details</button>
                 `;
+
+                const commentSection = document.createElement('div');
+                commentSection.classList.add('comment-section');
 
                 const commentInput = document.createElement('input');
                 commentInput.classList.add('comment-input');
@@ -88,7 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                comments: commentInput.value
+                                characterId: result.id,
+                                comment: commentInput.value
                             })
                         })
                             .then(res => res.json())
@@ -101,38 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         commentOutput.textContent = commentInput.value;
                         commentSection.appendChild(commentOutput);
 
-                        function deleteComment() {
-                            fetch('http://localhost:3000/comments')
-                                .then(res => res.json())
-                                .then(comments => {
-                                    comments.forEach(comment => {
-                                        const commentId = comment.id;
-
-                                        const deleteButton = document.createElement('button');
-                                        deleteButton.classList.add('delete-button');
-                                        deleteButton.textContent = 'Delete';
-                                        deleteButton.addEventListener('click', (e) => {
-                                            e.stopPropagation();
-
-                                            fetch(`http://localhost:3000/comments/${commentId}`, {
-                                                method: 'DELETE',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                }
-                                            })
-                                                .then(res => res.json())
-                                                .then(data => console.log(data))
-                                                .catch(err => console.log(err));
-
-                                            commentOutput.remove();
-                                            deleteButton.remove();
-                                        });
-
-                                        commentSection.appendChild(deleteButton);
-                                    });
-                                })
-                        }
-                        deleteComment();
+                        const deleteButton = createDeleteButton(result.id, commentOutput);
+                        commentSection.appendChild(deleteButton);
 
                         console.log('comment added successfully');
                         commentInput.value = '';
@@ -148,42 +121,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function likeCharacter(characterId) {
-        fetch(`https://thronesapi.com/api/v2/Characters/${characterId}/like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Liked character ${characterId}. New votes: ${data.votes}`);
-                // Update UI or perform other actions based on the liked character
-            })
-            .catch(error => console.error(error));
-    }
+    function createDeleteButton(characterId, commentOutput) {
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('delete-button');
+        deleteButton.textContent = 'Delete';
 
-    const inputCharacter = document.getElementById('search-input');
-    likeButton.addEventListener('click', () => {
-        const characterId = inputCharacter.value;
-        likeCharacter(characterId);
-    });
+        deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
 
-    function displayCharacterDetails(details) {
-        const characterDetailsDiv = document.createElement('div');
-        characterDetailsDiv.classList.add('character-details');
+            fetch('http://localhost:3000/comments')
+                .then(res => res.json())
+                .then(comments => {
+                    const comment = comments.find(c => c.characterId === characterId && c.comment === commentOutput.textContent);
 
-        characterDetailsDiv.innerHTML = `
-            <h2>${details.fullName}</h2>
-            <p>Title: ${details.title || 'No Title'}</p>
-            <p>Family: ${details.family || 'Unknown'}</p>
-        `;
+                    if (comment) {
+                        fetch(`http://localhost:3000/comments/${comment.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(res => res.json())
+                            .then(data => console.log(data))
+                            .catch(err => console.log(err));
 
-        const characterImage = document.getElementById(`character-image-${details.id}`);
-        characterImage.insertAdjacentElement('afterend', characterDetailsDiv);
+                        commentOutput.remove();
+                        deleteButton.remove();
+                    }
+                })
+        });
 
-        resultsDiv.innerHTML = ''; // Clear previous results
-        resultsDiv.appendChild(characterDetailsDiv);
+        return deleteButton;
     }
 
     function addComment(characterId, comment) {
@@ -191,11 +159,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Implement your logic for adding comments
     }
 
-    function deleteComment(characterId, commentId) {
-        console.log('Deleting comment for character ID', characterId, ', Comment ID:', commentId);
-        // Implement your logic for deleting comments
-    }
+    // ... (existing code)
 });
+
+
+
+
+
+
 
 
 
