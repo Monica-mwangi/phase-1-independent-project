@@ -1,3 +1,14 @@
 {
-  "comments": []
+  "comments": [
+    {
+      "characterId": 11,
+      "comment": "good",
+      "id": 1
+    },
+    {
+      "characterId": 3,
+      "comment": "hey",
+      "id": 2
+    }
+  ]
 }

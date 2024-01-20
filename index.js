@@ -58,8 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img id="character-image-${result.id}" src="${result.imageUrl}" alt="${result.fullName}">
                     <p>${result.title || 'No Title'}</p>
                     <button onclick="showCharacterDetails(${result.id})">Details</button>
-                    <button class="like-button" onclick="likeCharacter(${result.id})">Like</button>
-                    <span id="likes-${result.id}" class="likes-count">0</span>
+                    <span id="likes-${result.id}" class="likes-count"></span>
                 `;
 
                 const commentSection = document.createElement('div');
@@ -155,31 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Implement your logic for adding comments
     }
 
-    function likeCharacter(characterId) {
-        const likeButton = document.querySelector(`#character-image-${characterId} .like-button`);
-        const likesCountElement = document.getElementById(`likes-${characterId}`);
-
-        if (likeButton && likesCountElement) {
-            // Increment local counter
-            let likesCount = parseInt(likesCountElement.textContent) || 0;
-            likesCount++;
-
-            // Update the UI
-            likesCountElement.textContent = likesCount;
-            likeButton.classList.add('liked'); // Add a class to change the button style
-
-            // Send a request to update likes on the server
-            fetch(`http://localhost:3000/characters/${characterId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ likes: likesCount }),
-            })
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error(error));
-        }
+    window.showCharacterDetails = function(characterId) {
+        fetch(`https://thronesapi.com/api/v2/Characters/${characterId}`)
+            .then(response => response.json())
+            .then(data => displayCharacterDetails(data))
+            .catch(error => console.error(error));
     }
 
     function displayCharacterDetails(details) {
@@ -192,13 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>Family: ${details.family || 'Unknown'}</p>
         `;
 
-        const characterImage = document.getElementById(`character-image-${details.id}`);
-        characterImage.insertAdjacentElement('afterend', characterDetailsDiv);
-
         resultsDiv.innerHTML = ''; // Clear previous results
         resultsDiv.appendChild(characterDetailsDiv);
     }
 });
+
+
+
+
 
 
 
